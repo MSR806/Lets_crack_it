@@ -1,0 +1,65 @@
+sudo apt-get update
+sudo apt-get upgrade
+
+sudo apt-get install python3-venv
+python3 -m venv env
+source env/bin/activate
+
+pip3 install django
+git clone <url>
+cd <folder>
+
+pip3 install gunicorn
+sudo apt-get install -y nginx
+
+# To start nginx
+sudo nginx
+
+gunicorn --bind 0.0.0.0:8000 lets_crack_it.wsgi:application
+#(to stop) sudo pkill -f gunicorn
+add custon TCP on 8000 port in security groups in AWS instance - Then you can see
+
+sudo apt-get install -y supervisor
+
+cd /etc/supervisor/conf.d/
+sudo touch gunicorn.conf
+sudo nano gunicorn.conf
+----------------------------------------
+[program:gunicorn]
+directory=/home/ubuntu/Lets_crack_it
+command = /home/ubuntu/env/bin/gunicorn --workers 3 --bind unix:/home/ubuntu/Lets_crack_it/app.sock lets_crack_it.wsgi:application
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/gunicorn/gunicorn.err.log
+stdout_logfile=/var/log/gunicorn/gunicorn.out.log
+
+[group:guni]
+programs:gunicorn
+------------------------------------------
+
+sudo mkdir /var/log/gunicorn
+sudo supervisorctl reread
+
+sudo supervisorctl update
+sudo supervisorctl status
+
+sudo touch django.conf
+sudo nano django.conf
+------------------------------------------
+server {
+        listen 80;
+        server_name ec2-184-72-160-37.compute-1.amazonaws.com;
+
+	location /static/ {
+		autoindex on;
+		alias /home/ubuntu/Lets_crack_it/static/;
+
+        location / {
+                include proxy_params;
+                proxy_pass http://unix:/home/ubuntu/Lets_crack_it/app.sock;
+        }
+	
+}
+------------------------------------------
+sudo nginx -t
+sudo service nginx restart
