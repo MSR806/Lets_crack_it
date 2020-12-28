@@ -43,6 +43,8 @@ sudo supervisorctl reread
 sudo supervisorctl update
 sudo supervisorctl status
 
+cd /etc/nginx/sites-available
+
 sudo touch django.conf
 sudo nano django.conf
 ------------------------------------------
@@ -62,4 +64,5 @@ server {
 }
 ------------------------------------------
 sudo nginx -t
+sudo ln django.conf /etc/nginx/sites-enabled/
 sudo service nginx restart
